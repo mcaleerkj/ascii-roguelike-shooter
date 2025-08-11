@@ -8,7 +8,7 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 6f;
-    [SerializeField] private bool disableCollision = true; // Set to true to disable wall collision detection
+    [SerializeField] private bool disableCollision = false; // Set to false to enable wall collision detection
     
     [Header("Rendering")]
     [SerializeField] private char glyph = '@';
@@ -105,8 +105,16 @@ public class PlayerController : MonoBehaviour
             // Use MapRenderer for collision detection when using viewport rendering
             Vector2Int newGridPos = WorldToMapGrid(newPosition);
             
+            // Debug collision detection
+            if (Time.frameCount % 60 == 0) // Log every 60 frames to avoid spam
+            {
+                Debug.Log($"[PlayerController] Movement: {input}, New Grid Pos: {newGridPos}, Is Wall: {IsWallAtMapPosition(newGridPos)}");
+            }
+            
             if (IsWallAtMapPosition(newGridPos))
             {
+                Debug.Log($"[PlayerController] Wall collision detected at grid position {newGridPos}");
+                
                 // Try to move only on X axis if Y movement hits a wall
                 if (input.x != 0)
                 {
@@ -115,25 +123,29 @@ public class PlayerController : MonoBehaviour
                     if (!IsWallAtMapPosition(xOnlyGridPos))
                     {
                         newPosition = xOnlyPosition;
+                        Debug.Log($"[PlayerController] Allowing X-only movement to {xOnlyPosition}");
                     }
                     else
                     {
                         // Both X and Y movement hit walls, don't move
+                        Debug.Log($"[PlayerController] Blocked in both directions");
                         return;
                     }
                 }
                 else if (input.y != 0)
                 {
                     // Try to move only on Y axis if X movement hits a wall
-                    Vector2 yOnlyPosition = new Vector2(newPosition.x, transform.position.y);
+                    Vector2 yOnlyPosition = new Vector2(transform.position.x, newPosition.y);
                     Vector2Int yOnlyGridPos = WorldToMapGrid(yOnlyPosition);
                     if (!IsWallAtMapPosition(yOnlyGridPos))
                     {
                         newPosition = yOnlyPosition;
+                        Debug.Log($"[PlayerController] Allowing Y-only movement to {yOnlyPosition}");
                     }
                     else
                     {
                         // Both X and Y movement hit walls, don't move
+                        Debug.Log($"[PlayerController] Blocked in both directions");
                         return;
                     }
                 }
@@ -175,9 +187,9 @@ public class PlayerController : MonoBehaviour
                 else if (input.y != 0)
                 {
                     // Try to move only on Y axis if X movement hits a wall
-                    Vector2 yOnlyPosition = new Vector2(newPosition.x, transform.position.y);
+                    Vector2 yOnlyPosition = new Vector2(transform.position.x, newPosition.y);
                     Vector2Int yOnlyGridPos = asciiGrid.WorldToGrid(yOnlyPosition);
-                    if (!IsWallAtMapPosition(yOnlyGridPos))
+                    if (!IsWallAtGridPosition(yOnlyGridPos))
                     {
                         newPosition = yOnlyPosition;
                     }
@@ -344,6 +356,35 @@ public class PlayerController : MonoBehaviour
             Debug.Log($"PlayerController: Position {pos}: Is wall = {isWall}");
         }
     }
+    
+    [ContextMenu("Test Map Collision")]
+    public void TestMapCollision()
+    {
+        if (mapRenderer == null || mapRenderer.CurrentMap == null)
+        {
+            Debug.LogWarning("PlayerController: No map data available for collision testing");
+            return;
+        }
+        
+        Vector2Int currentGridPos = WorldToMapGrid(transform.position);
+        Debug.Log($"[PlayerController] Current map grid position: {currentGridPos}");
+        Debug.Log($"[PlayerController] Map size: {mapRenderer.CurrentMap.width}x{mapRenderer.CurrentMap.height}");
+        Debug.Log($"[PlayerController] Is wall at current position: {IsWallAtMapPosition(currentGridPos)}");
+        
+        // Test positions around the player
+        Vector2Int[] testPositions = {
+            currentGridPos + Vector2Int.up,
+            currentGridPos + Vector2Int.down,
+            currentGridPos + Vector2Int.left,
+            currentGridPos + Vector2Int.right
+        };
+        
+        foreach (var pos in testPositions)
+        {
+            bool isWall = IsWallAtMapPosition(pos);
+            Debug.Log($"[PlayerController] Map position {pos}: Is wall = {isWall}");
+        }
+    }
 
     private bool IsUsingViewportRendering()
     {
@@ -403,14 +444,29 @@ public class PlayerController : MonoBehaviour
     
     private bool IsWallAtMapPosition(Vector2Int gridPos)
     {
-        if (mapRenderer == null || mapRenderer.CurrentMap == null) return true;
+        if (mapRenderer == null || mapRenderer.CurrentMap == null) 
+        {
+            Debug.LogWarning($"[PlayerController] IsWallAtMapPosition: mapRenderer or CurrentMap is null at {gridPos}");
+            return true;
+        }
         
         // Check if position is within map bounds
         if (gridPos.x < 0 || gridPos.x >= mapRenderer.CurrentMap.width || 
             gridPos.y < 0 || gridPos.y >= mapRenderer.CurrentMap.height)
+        {
+            Debug.Log($"[PlayerController] IsWallAtMapPosition: Out of bounds at {gridPos}, map size: {mapRenderer.CurrentMap.width}x{mapRenderer.CurrentMap.height}");
             return true; // Treat out of bounds as walls
+        }
         
         // Use MapRenderer's logic
-        return !mapRenderer.IsFloorAt(gridPos);
+        bool isWall = !mapRenderer.IsFloorAt(gridPos);
+        
+        // Debug wall detection occasionally
+        if (Time.frameCount % 120 == 0) // Log every 120 frames
+        {
+            Debug.Log($"[PlayerController] IsWallAtMapPosition: Grid {gridPos} = Wall: {isWall}");
+        }
+        
+        return isWall;
     }
 }

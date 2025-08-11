@@ -118,6 +118,62 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &338815596
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 338815597}
+  - component: {fileID: 338815598}
+  m_Layer: 0
+  m_Name: Player
+  m_TagString: Player
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &338815597
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 338815596}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 2.75, y: 2.7291667, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1488712005}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &338815598
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 338815596}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86af5dbd71416e4438bb452418bca54e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 3
+  disableCollision: 1
+  glyph: 64
+  fgColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  bgColor:
+    serializedVersion: 2
+    rgba: 4278190080
+  asciiGrid: {fileID: 0}
+  mapRenderer: {fileID: 884399079}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -294,7 +350,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cad97c770e1ba041829db7ec7ffeaa9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 1488712005}
+  target: {fileID: 338815597}
   config: {fileID: 11400000, guid: a42740bcc9740804d8743a0a38eb23ec, type: 2}
   cellSize: 0.16666667
   smoothTime: 0.08
@@ -776,10 +832,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1488712005}
-  - component: {fileID: 1488712006}
   - component: {fileID: 1488712007}
   m_Layer: 0
-  m_Name: Player
+  m_Name: PlayerController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -793,38 +848,15 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1488712004}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.75, y: 2.7291667, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.015, y: -0.06, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1013049527}
   - {fileID: 1611247028}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 338815597}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1488712006
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1488712004}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 86af5dbd71416e4438bb452418bca54e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 5
-  disableCollision: 1
-  glyph: 64
-  fgColor:
-    serializedVersion: 2
-    rgba: 4294967295
-  bgColor:
-    serializedVersion: 2
-    rgba: 4278190080
-  asciiGrid: {fileID: 0}
-  mapRenderer: {fileID: 884399079}
 --- !u!114 &1488712007
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -842,7 +874,7 @@ MonoBehaviour:
   reticle: {fileID: 1013049526}
   orbitRadiusWorld: 0.5
   minAimMagnitude: 0.0005
-  centerPlayerToGridCell: 1
+  centerPlayerToGridCell: 0
   cellSize: 0.16666667
   gridOrigin: {fileID: 0}
   offsetX: 0
@@ -955,5 +987,5 @@ SceneRoots:
   m_Roots:
   - {fileID: 519420032}
   - {fileID: 619394802}
-  - {fileID: 1488712005}
+  - {fileID: 338815597}
   - {fileID: 884399077}
