@@ -23,12 +23,22 @@ public class AsciiGridSmokeTest : MonoBehaviour
         Color.magenta
     };
     
+    [Header("Control")]
+    [SerializeField] private bool enableTestGrid = false; // Set to false to disable test grid
+    
     private AsciiGrid asciiGrid;
     private int currentColorIndex = 0;
     private bool messageDrawn = false;
 
     private void Awake()
     {
+        // Skip initialization if test grid is disabled
+        if (!enableTestGrid)
+        {
+            Debug.Log("AsciiGridSmokeTest: Test grid disabled - skipping initialization");
+            return;
+        }
+        
         // Create AsciiGrid component if it doesn't exist
         asciiGrid = GetComponent<AsciiGrid>();
         if (asciiGrid == null)
@@ -164,5 +174,53 @@ public class AsciiGridSmokeTest : MonoBehaviour
     public AsciiGrid GetAsciiGrid()
     {
         return asciiGrid;
+    }
+    
+    // Public method to enable/disable test grid at runtime
+    public void SetTestGridEnabled(bool enabled)
+    {
+        enableTestGrid = enabled;
+        
+        if (enabled && !messageDrawn)
+        {
+            // Initialize if not already done
+            if (asciiGrid == null)
+            {
+                asciiGrid = GetComponent<AsciiGrid>();
+                if (asciiGrid == null)
+                {
+                    asciiGrid = gameObject.AddComponent<AsciiGrid>();
+                }
+            }
+            StartCoroutine(InitializeAfterGrid());
+        }
+        else if (!enabled && messageDrawn)
+        {
+            // Clear the test grid if it was drawn
+            if (asciiGrid != null)
+            {
+                asciiGrid.Clear(AsciiCell.Create(' ', Color.white, Color.black));
+                messageDrawn = false;
+            }
+        }
+    }
+    
+    // Context menu to toggle test grid
+    [ContextMenu("Toggle Test Grid")]
+    public void ToggleTestGrid()
+    {
+        SetTestGridEnabled(!enableTestGrid);
+    }
+    
+    [ContextMenu("Disable Test Grid")]
+    public void DisableTestGrid()
+    {
+        SetTestGridEnabled(false);
+    }
+    
+    [ContextMenu("Enable Test Grid")]
+    public void EnableTestGrid()
+    {
+        SetTestGridEnabled(true);
     }
 }

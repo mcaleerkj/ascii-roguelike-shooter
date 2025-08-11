@@ -2,93 +2,80 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
-    [Header("Target")]
+    [Header("Target & Data")]
     [SerializeField] private Transform target;
-    
-    [Header("Follow Settings")]
-    [SerializeField] private float smoothTime = 0.1f;
-    [SerializeField] private float mouseLeadAmount = 0.5f;
-    [SerializeField] private Vector3 offset = Vector3.zero;
-    
-    // Private fields
-    private Vector3 velocity = Vector3.zero;
-    private UnityEngine.Camera cam;
-    
-    private void Start()
+    public GameRenderConfig config;
+    public MapData map;
+    [Tooltip("World units per cell. Set via RecomputeCellSize(cam) = pixelsPerCell / PPU.")]
+    public float cellSize = 0.16666667f;
+
+    [Header("Follow")]
+    [SerializeField] private float smoothTime = 0.08f;
+    [SerializeField] private float mouseLeadAmount = 0f;
+    [SerializeField] private Vector2 offset = Vector2.zero;
+
+    private Vector3 vel;
+    private Camera cam;
+
+    void Awake()
     {
-        // Get camera component
-        cam = GetComponent<UnityEngine.Camera>();
-        if (cam == null)
+        cam = GetComponent<Camera>();
+        if (!cam) Debug.LogError("CameraFollow: No Camera component.");
+        if (!target)
         {
-            Debug.LogError("CameraFollow: No Camera component found!");
-            return;
+            var p = FindObjectOfType<PlayerController>();
+            if (p) target = p.transform;
         }
-        
-                    // Find player if not assigned
-            if (target == null)
-            {
-                var player = FindObjectOfType<PlayerController>();
-                if (player != null)
-                {
-                    target = player.transform;
-                    Debug.Log("CameraFollow: Auto-assigned player as target");
-                }
-                else
-                {
-                    Debug.LogWarning("CameraFollow: No player found and no target assigned!");
-                }
-            }
     }
-    
-    private void LateUpdate()
+
+    void LateUpdate()
     {
-        if (target == null) return;
-        
-        // Calculate target position with mouse lead
-        Vector3 targetPosition = CalculateTargetPosition();
-        
+        if (!target || map == null || config == null) return;
+
+        // Visible window (cells -> world)
+        int visX = Mathf.Max(1, config.referenceWidth  / config.pixelsPerCell);
+        int visY = Mathf.Max(1, config.referenceHeight / config.pixelsPerCell);
+        float viewW = visX * cellSize;
+        float viewH = visY * cellSize;
+        float halfW = viewW * 0.5f;
+        float halfH = viewH * 0.5f;
+
+        // Desired center
+        Vector3 desired = target.position;
+        desired += (Vector3)offset;
+
+        if (mouseLeadAmount > 0f && cam != null)
+        {
+            Vector3 mouse = Input.mousePosition;
+            mouse.z = Mathf.Abs(cam.transform.position.z);
+            Vector3 mw = cam.ScreenToWorldPoint(mouse);
+            Vector2 lead = ((Vector2)(mw - target.position)).normalized * mouseLeadAmount;
+            desired += (Vector3)lead;
+        }
+
+        // Map bounds in world
+        float mapW = map.width  * cellSize;
+        float mapH = map.height * cellSize;
+
+        // Clamp so full viewport stays inside the map
+        float cx = Mathf.Clamp(desired.x, halfW, Mathf.Max(halfW, mapW - halfW));
+        float cy = Mathf.Clamp(desired.y, halfH, Mathf.Max(halfH, mapH - halfH));
+
+        Vector3 center = new Vector3(cx, cy, transform.position.z);
+
         // Smooth follow
-        Vector3 newPosition = Vector3.SmoothDamp(
-            transform.position, 
-            targetPosition, 
-            ref velocity, 
-            smoothTime
-        );
-        
-        // Keep Z at camera's default
-        newPosition.z = transform.position.z;
-        
-        transform.position = newPosition;
+        transform.position = Vector3.SmoothDamp(transform.position, center, ref vel, smoothTime);
     }
-    
-    private Vector3 CalculateTargetPosition()
+
+    // Utilities
+    public void SetTarget(Transform t) => target = t;
+    public void SetMap(MapData m) => map = m;
+    public void SetConfig(GameRenderConfig c) => config = c;
+
+    public void RecomputeCellSize(Camera c)
     {
-        Vector3 basePosition = target.position + offset;
-        
-        // Add mouse lead
-        if (cam != null)
-        {
-            Vector3 mouseWorldPos = MouseWorld.GetMouseWorldPosition();
-            Vector3 mouseLead = (mouseWorldPos - target.position).normalized * mouseLeadAmount;
-            basePosition += mouseLead;
-        }
-        
-        return basePosition;
-    }
-    
-    // Public methods
-    public void SetTarget(Transform newTarget)
-    {
-        target = newTarget;
-    }
-    
-    public void SetMouseLeadAmount(float amount)
-    {
-        mouseLeadAmount = Mathf.Clamp(amount, 0f, 2f);
-    }
-    
-    public void SetSmoothTime(float time)
-    {
-        smoothTime = Mathf.Clamp(time, 0.01f, 1f);
+        if (config == null || c == null) return;
+        float ppu = PixelMath.GetPPU(c); // referenceHeight / worldHeight
+        cellSize = config.pixelsPerCell / ppu;
     }
 }

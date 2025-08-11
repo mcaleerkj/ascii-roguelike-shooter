@@ -86,7 +86,7 @@ public class PlayerAim : MonoBehaviour
         reticle.transform.localScale = Vector3.one;
     }
 
-    void CenterPlayerToNearestGridCell()
+    public void CenterPlayerToNearestGridCell()
     {
         Vector3 origin = gridOrigin ? gridOrigin.position : Vector3.zero;
 
